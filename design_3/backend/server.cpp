@@ -535,9 +535,13 @@ void updateCarType(
     vector<unique_ptr<CarGroup>>* allGroups
 ) {
  
+    // Se imprime el ID real del hilo del sistema operativo. Es la prueba
+    // concreta de que hay 3 hilos distintos y no uno solo: los tres IDs
+    // que salgan aqui tienen que ser diferentes entre si.
     cout
-        << "[HILO " << group->color << "] iniciado, maneja "
-        << group->cars.size() << " carros"
+        << "[HILO " << group->color << "] iniciado"
+        << " | id de hilo: " << this_thread::get_id()
+        << " | maneja " << group->cars.size() << " carros"
         << endl;
  
     // Generador propio de cada hilo.
@@ -550,6 +554,10 @@ void updateCarType(
     );
  
     long long iteration = 0;
+ 
+    // Acumulado de cuantas veces la anticolision impidio un movimiento.
+    // Es local al hilo, no se comparte, asi que no necesita proteccion.
+    long long blockedTotal = 0;
  
     while (running.load()) {
  
@@ -649,6 +657,7 @@ void updateCarType(
  
         group->updates++;
         iteration++;
+        blockedTotal += blocked;
  
         // Imprimir mas o menos una vez por segundo para no
         // inundar la terminal (6 carros x 33 veces por segundo).
@@ -663,6 +672,7 @@ void updateCarType(
  
             cout << " | movidos=" << moved
                  << " bloqueados=" << blocked
+                 << " (acumulado: " << blockedTotal << ")"
                  << endl;
         }
  
@@ -748,8 +758,20 @@ int main() {
  
             car.id    = nextId++;
             car.x     = group->lanes[index % laneCount];
-            car.y     = -100 - (index / laneCount) * 220;
-            car.speed = config.speed;
+ 
+            // ESCALONADO: cada carro arranca a distinta altura.
+            // Antes se calculaba con (index / laneCount), y como la division
+            // entera de 1/2 da 0, los dos carros de un mismo color nacian en
+            // la MISMA y. Con la misma velocidad quedaban clavados uno al lado
+            // del otro, moviendose como un bloque pegado.
+            car.y     = -100 - index * 260;
+ 
+            // Pequeña variacion de velocidad DENTRO del tipo. El color sigue
+            // definiendo la velocidad base (y por lo tanto el hilo que lo
+            // maneja), pero los carros ya no van en formacion rigida: se van
+            // alcanzando entre ellos, y ahi la anticolision hace su trabajo.
+            car.speed = config.speed + (i % 2);
+ 
             car.color = config.color;
  
             group->cars.push_back(car);
