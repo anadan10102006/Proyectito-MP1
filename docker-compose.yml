@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build:
+      context: "./design_${DISENO}/backend"
+    ports:
+      - "5000:5000"
+    networks:
+      - game-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: "./design_${DISENO}/frontend"
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - game-network
+    restart: unless-stopped
+
+networks:
+  game-network:
+    driver: bridge
