@@ -1,6 +1,6 @@
 # Enemy Cars - Multi-Threading and Shared-Memory Ideas
 
-## Integrantes: Maria Lucía Castillo García, Juliana González Sánchez y Ana Daniela Paredes Tovar.
+**Integrantes:** *Maria Lucía Castillo García, Juliana González Sánchez y Ana Daniela Paredes Tovar.*
 
 ## Micro-Proyecto No. 1 - Programación Paralela
 
